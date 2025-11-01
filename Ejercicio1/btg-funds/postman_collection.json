@@ -1,0 +1,202 @@
+{
+	"info": {
+		"_postman_id": "21c62f1c-0734-4d87-9890-ddbe090c9fe3",
+		"name": "PruebaTecnicaBackend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13746580",
+		"_collection_link": "https://fidusiaria.postman.co/workspace/Cumplimos~3fc6daba-ce18-405f-8284-3ae897bab7b2/collection/13746580-21c62f1c-0734-4d87-9890-ddbe090c9fe3?action=share&source=collection_link&creator=13746580"
+	},
+	"item": [
+		{
+			"name": "Suscripción a un fondo",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"userId\": \"u123\",\r\n  \"fundId\": \"5\",\r\n  \"amount\": 100000\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/funds/subscribe",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"funds",
+						"subscribe"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Suscripción a un fondo",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"u123\",\n  \"fundId\": \"5\",\n  \"amount\": 100000\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/funds/subscribe",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"funds",
+								"subscribe"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"description": ""
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"trxId\": \"trx#7b3ef4a2-991b-41b1-b83e-d7cdd2b0cf4f\",\n  \"newBalance\": 400000\n}\n"
+				}
+			]
+		},
+		{
+			"name": "Cancelar una suscripción",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"userId\": \"u123\",\r\n  \"fundId\": \"5\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/funds/cancel",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"funds",
+						"cancel"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Cancelar una suscripción",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"u123\",\n  \"fundId\": \"5\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/funds/cancel",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"funds",
+								"cancel"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"description": ""
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"trxId\": \"trx#09a3be29-2a58-46f4-9b67-5f969dbf6d18\",\n  \"newBalance\": 500000\n}\n"
+				}
+			]
+		},
+		{
+			"name": "Consultar historial de transacciones",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/funds/history/u123",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"funds",
+						"history",
+						"u123"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Consultar historial de transacciones",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/funds/history/u123",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"funds",
+								"history",
+								"u123"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"description": ""
+						}
+					],
+					"cookie": [],
+					"body": "[\n  {\n    \"trx_id\": \"2025-10-30T15:30:00Z#trx#0c2f5dba-3477-4e7e-b089-99ad8ab7be55\",\n    \"type\": \"SUBSCRIBE\",\n    \"fund_id\": \"5\",\n    \"fund_name\": \"FPV_BTG_PACTUAL_DINAMICA\",\n    \"amount\": 100000,\n    \"created_at\": \"2025-10-30T15:30:00Z\"\n  },\n  {\n    \"trx_id\": \"2025-10-30T15:45:00Z#trx#2f7a4a09-9a93-42b5-9181-f4ccbb6b8a88\",\n    \"type\": \"CANCEL\",\n    \"fund_id\": \"5\",\n    \"fund_name\": \"FPV_BTG_PACTUAL_DINAMICA\",\n    \"amount\": 100000,\n    \"created_at\": \"2025-10-30T15:45:00Z\"\n  }\n]\n"
+				}
+			]
+		}
+	]
+}

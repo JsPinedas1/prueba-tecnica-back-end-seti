@@ -1,0 +1,16 @@
+{
+  "UsersTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "user_id": { "S": "u123" },
+          "name": { "S": "Cliente Demo" },
+          "email": { "S": "cliente@demo.com" },
+          "phone": { "S": "+573001112233" },
+          "notify_pref": { "S": "email" },
+          "balance": { "N": "500000" }
+        }
+      }
+    }
+  ]
+}

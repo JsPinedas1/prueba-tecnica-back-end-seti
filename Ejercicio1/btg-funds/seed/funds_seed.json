@@ -1,0 +1,54 @@
+{
+  "FundsTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "fund_id": { "S": "1" },
+          "name": { "S": "FPV_BTG_PACTUAL_RECAUDADORA" },
+          "min_amount": { "N": "75000" },
+          "category": { "S": "FPV" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "fund_id": { "S": "2" },
+          "name": { "S": "FPV_BTG_PACTUAL_ECOPETROL" },
+          "min_amount": { "N": "125000" },
+          "category": { "S": "FPV" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "fund_id": { "S": "3" },
+          "name": { "S": "DEUDAPRIVADA" },
+          "min_amount": { "N": "50000" },
+          "category": { "S": "FIC" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "fund_id": { "S": "4" },
+          "name": { "S": "FDO-ACCIONES" },
+          "min_amount": { "N": "250000" },
+          "category": { "S": "FIC" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "fund_id": { "S": "5" },
+          "name": { "S": "FPV_BTG_PACTUAL_DINAMICA" },
+          "min_amount": { "N": "100000" },
+          "category": { "S": "FPV" }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,170 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: BTG Funds - Serverless API (.NET 8 + DynamoDB + API Gateway + SNS)
+
+Globals:
+  Function:
+    Runtime: dotnet8
+    Timeout: 20
+    MemorySize: 512
+    Tracing: Active
+    Environment:
+      Variables:
+        USERS_TABLE: !Ref UsersTable
+        FUNDS_TABLE: !Ref FundsTable
+        SUBS_TABLE: !Ref SubsTable
+        TRX_TABLE: !Ref TrxTable
+        NOTIFY_TOPIC_ARN: !Ref NotifyTopic
+        EMAIL_SENDER: no-reply@example.com
+        AWS_REGION: !Ref AWS::Region
+
+Resources:
+  Api:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowMethods: [GET, POST, OPTIONS]
+        AllowHeaders: [authorization, content-type]
+        AllowOrigins: ["*"]
+
+  SubscribeFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/Btq.Funds.Api/
+      Handler: Btq.Funds.Api::Btq.Funds.Api.Functions.SubscribeFunction::FunctionHandlerAsync
+      Events:
+        Subscribe:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /funds/subscribe
+            Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SubsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TrxTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref FundsTable
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt NotifyTopic.TopicName
+
+  CancelFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/Btq.Funds.Api/
+      Handler: Btq.Funds.Api::Btq.Funds.Api.Functions.CancelFunction::FunctionHandlerAsync
+      Events:
+        Cancel:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /funds/cancel
+            Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SubsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TrxTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref FundsTable
+
+  HistoryFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/Btq.Funds.Api/
+      Handler: Btq.Funds.Api::Btq.Funds.Api.Functions.HistoryFunction::FunctionHandlerAsync
+      Events:
+        History:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /funds/history/{user_id}
+            Method: GET
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TrxTable
+
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+
+  FundsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: fund_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: fund_id
+          KeyType: HASH
+
+  SubsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: fund_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: fund_id
+          KeyType: RANGE
+
+  TrxTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: trx_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: trx_id
+          KeyType: RANGE
+
+  NotifyTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: btg-funds-notify
+
+Outputs:
+  ApiEndpoint:
+    Description: HTTP API Invoke URL
+    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com"
+  UsersTableName:
+    Value: !Ref UsersTable
+  FundsTableName:
+    Value: !Ref FundsTable
+  SubsTableName:
+    Value: !Ref SubsTable
+  TrxTableName:
+    Value: !Ref TrxTable
+  NotifyTopicArn:
+    Value: !Ref NotifyTopic
