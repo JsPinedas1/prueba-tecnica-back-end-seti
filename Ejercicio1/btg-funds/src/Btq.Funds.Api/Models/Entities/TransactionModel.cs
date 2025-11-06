@@ -1,15 +1,13 @@
-using System;
-
 namespace Btq.Funds.Api.Models.Entities
 {
   public class TransactionModel
   {
-    public string UserId { get; set; }
-    public string TrxId { get; set; }
-    public string FundId { get; set; }
-    public string FundName { get; set; }
-    public string Type { get; set; }
+    public string UserId { get; set; } = default!;
+    public string TrxId { get; set; } = default!;
+    public string FundId { get; set; } = default!;
+    public string FundName { get; set; } = default!;
+    public string Type { get; set; } = default!;
     public int Amount { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public string CreatedAtIso { get; set; } = default!;
   }
 }

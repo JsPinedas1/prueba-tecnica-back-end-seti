@@ -1,8 +1,13 @@
+using System.Text.Json.Serialization;
+
 namespace Btq.Funds.Api.Models.Requests
 {
   public class BaseRequest
   {
-    public string UserId { get; set; }
-    public string FundId { get; set; }
+    [JsonPropertyName("userId")]
+    public string UserId { get; set; } = default!;
+
+    [JsonPropertyName("fundId")]
+    public string FundId { get; set; } = default!;
   }
 }

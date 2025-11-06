@@ -9,8 +9,6 @@ using Btq.Funds.Api.Models.Requests;
 using Btq.Funds.Api.Services;
 using Btq.Funds.Api.Utils;
 
-[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-
 namespace Btq.Funds.Api.Functions
 {
   public class SubscribeFunction
@@ -29,18 +27,19 @@ namespace Btq.Funds.Api.Functions
     {
       try
       {
+        if (string.IsNullOrWhiteSpace(request.Body))
+          return ResponseBuilder.BadRequest("invalid body");
+
         var payload = JsonSerializer.Deserialize<SubscribeRequest>(request.Body);
+        if (payload == null)
+          return ResponseBuilder.BadRequest("invalid body");
+
         var result = await _service.ProcessAsync(payload);
         return ResponseBuilder.Ok(result);
       }
       catch (Exception ex)
       {
-        return new APIGatewayProxyResponse
-        {
-          StatusCode = (int)HttpStatusCode.InternalServerError,
-          Body = JsonSerializer.Serialize(new { message = ex.Message }),
-          Headers = new Dictionary<string, string> { ["Content-Type"] = "application/json" }
-        };
+        return ResponseBuilder.Error(ex.Message);
       }
     }
   }

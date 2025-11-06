@@ -16,7 +16,6 @@ Globals:
         TRX_TABLE: !Ref TrxTable
         NOTIFY_TOPIC_ARN: !Ref NotifyTopic
         EMAIL_SENDER: no-reply@example.com
-        AWS_REGION: !Ref AWS::Region
 
 Resources:
   Api:

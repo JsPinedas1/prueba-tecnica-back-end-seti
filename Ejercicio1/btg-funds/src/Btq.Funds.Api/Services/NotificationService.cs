@@ -14,17 +14,19 @@ namespace Btq.Funds.Api.Services
     public NotificationService()
     {
       _sns = new AmazonSimpleNotificationServiceClient();
-      _topicArn = Environment.GetEnvironmentVariable("NOTIFY_TOPIC_ARN");
+      _topicArn = Environment.GetEnvironmentVariable("NOTIFY_TOPIC_ARN") ?? string.Empty;
     }
 
     public NotificationService(IAmazonSimpleNotificationService sns)
     {
       _sns = sns;
-      _topicArn = Environment.GetEnvironmentVariable("NOTIFY_TOPIC_ARN");
+      _topicArn = Environment.GetEnvironmentVariable("NOTIFY_TOPIC_ARN") ?? string.Empty;
     }
 
     public async Task PublishAsync(string subject, string message)
     {
+      if (string.IsNullOrWhiteSpace(_topicArn)) return;
+
       await _sns.PublishAsync(new PublishRequest
       {
         TopicArn = _topicArn,

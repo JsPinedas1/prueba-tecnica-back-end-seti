@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
@@ -17,14 +18,39 @@ namespace Btq.Funds.Api.Utils
       this.db = db;
     }
 
-    public string UsersTable => Environment.GetEnvironmentVariable("USERS_TABLE");
-    public string FundsTable => Environment.GetEnvironmentVariable("FUNDS_TABLE");
-    public string SubsTable => Environment.GetEnvironmentVariable("SUBS_TABLE");
-    public string TrxTable => Environment.GetEnvironmentVariable("TRX_TABLE");
+    public string UsersTable => Environment.GetEnvironmentVariable("USERS_TABLE")!;
+    public string FundsTable => Environment.GetEnvironmentVariable("FUNDS_TABLE")!;
+    public string SubsTable => Environment.GetEnvironmentVariable("SUBS_TABLE")!;
+    public string TrxTable => Environment.GetEnvironmentVariable("TRX_TABLE")!;
 
     public static string NowIso() => DateHelper.NowIso();
 
-    public async Task<UserModel> GetUser(string userId)
+    public static void AddStringAttr(Dictionary<string, AttributeValue> item, string key, string? value)
+    {
+      if (!string.IsNullOrWhiteSpace(value))
+        item[key] = new AttributeValue { S = value };
+    }
+
+    public static void AddNumberAttr(Dictionary<string, AttributeValue> item, string key, decimal? value)
+    {
+      if (value.HasValue)
+        item[key] = new AttributeValue { N = value.Value.ToString(CultureInfo.InvariantCulture) };
+    }
+
+    public static void AddNumberAttr(Dictionary<string, AttributeValue> item, string key, int? value)
+    {
+      if (value.HasValue)
+        item[key] = new AttributeValue { N = value.Value.ToString(CultureInfo.InvariantCulture) };
+    }
+
+    public static string GetString(Dictionary<string, AttributeValue> item, string key, string defaultValue = "")
+      => item.TryGetValue(key, out var v) ? v.S ?? defaultValue : defaultValue;
+
+    public static int GetInt(Dictionary<string, AttributeValue> item, string key, int defaultValue = 0)
+      => item.TryGetValue(key, out var v) && !string.IsNullOrEmpty(v.N) && int.TryParse(v.N, NumberStyles.Any, CultureInfo.InvariantCulture, out var n)
+        ? n : defaultValue;
+
+    public async Task<UserModel?> GetUser(string userId)
     {
       var res = await db.GetItemAsync(new GetItemRequest
       {
@@ -36,16 +62,16 @@ namespace Btq.Funds.Api.Utils
 
       return new UserModel
       {
-        UserId = res.Item.TryGetValue("user_id", out var v1) ? v1.S : null,
-        Name = res.Item.TryGetValue("name", out var v2) ? v2.S : null,
-        Email = res.Item.TryGetValue("email", out var v3) ? v3.S : null,
-        Phone = res.Item.TryGetValue("phone", out var v4) ? v4.S : null,
-        NotifyPref = res.Item.TryGetValue("notify_pref", out var v5) ? v5.S : null,
-        Balance = res.Item.TryGetValue("balance", out var v6) ? int.Parse(v6.N) : 0
+        UserId = GetString(res.Item, "user_id"),
+        Name = GetString(res.Item, "name"),
+        Email = GetString(res.Item, "email"),
+        Phone = GetString(res.Item, "phone"),
+        NotifyPref = GetString(res.Item, "notify_pref"),
+        Balance = GetInt(res.Item, "balance", 0)
       };
     }
 
-    public async Task<FundModel> GetFund(string fundId)
+    public async Task<FundModel?> GetFund(string fundId)
     {
       var res = await db.GetItemAsync(new GetItemRequest
       {
@@ -57,10 +83,10 @@ namespace Btq.Funds.Api.Utils
 
       return new FundModel
       {
-        FundId = res.Item.TryGetValue("fund_id", out var v1) ? v1.S : null,
-        Name = res.Item.TryGetValue("name", out var v2) ? v2.S : null,
-        MinAmount = res.Item.TryGetValue("min_amount", out var v3) ? int.Parse(v3.N) : 0,
-        Category = res.Item.TryGetValue("category", out var v4) ? v4.S : null
+        FundId = GetString(res.Item, "fund_id"),
+        Name = GetString(res.Item, "name"),
+        MinAmount = GetInt(res.Item, "min_amount", 0),
+        Category = GetString(res.Item, "category")
       };
     }
 
@@ -76,7 +102,40 @@ namespace Btq.Funds.Api.Utils
         }
       }, CancellationToken.None);
 
-      return res.Item;
+      return res.Item ?? new Dictionary<string, AttributeValue>();
+    }
+
+    public Task PutSubscription(string userId, string fundId, string status, string createdAtIso)
+    {
+      var item = new Dictionary<string, AttributeValue>();
+      AddStringAttr(item, "user_id", userId);
+      AddStringAttr(item, "fund_id", fundId);
+      AddStringAttr(item, "status", status);
+      AddStringAttr(item, "created_at", createdAtIso);
+
+      return db.PutItemAsync(new PutItemRequest
+      {
+        TableName = SubsTable,
+        Item = item
+      });
+    }
+
+    public Task PutTransaction(TransactionModel trx)
+    {
+      var item = new Dictionary<string, AttributeValue>();
+      AddStringAttr(item, "user_id", trx.UserId);
+      AddStringAttr(item, "trx_id", trx.TrxId);
+      AddStringAttr(item, "fund_id", trx.FundId);
+      AddStringAttr(item, "fund_name", trx.FundName);
+      AddStringAttr(item, "type", trx.Type);
+      AddStringAttr(item, "created_at", trx.CreatedAtIso);
+      AddNumberAttr(item, "amount", trx.Amount);
+
+      return db.PutItemAsync(new PutItemRequest
+      {
+        TableName = TrxTable,
+        Item = item
+      });
     }
   }
 }

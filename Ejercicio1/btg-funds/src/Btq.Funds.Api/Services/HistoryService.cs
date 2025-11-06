@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
@@ -10,52 +12,53 @@ namespace Btq.Funds.Api.Services
 {
   public class HistoryService
   {
-    private readonly IAmazonDynamoDB _db;
-    private readonly DdbHelper _ddb;
+    private readonly IAmazonDynamoDB db;
+    private readonly DdbHelper ddb;
 
     public HistoryService()
     {
-      _db = new AmazonDynamoDBClient();
-      _ddb = new DdbHelper(_db);
+      db = new AmazonDynamoDBClient();
+      ddb = new DdbHelper(db);
     }
 
-    public HistoryService(IAmazonDynamoDB db)
+    public HistoryService(IAmazonDynamoDB dynamo)
     {
-      _db = db;
-      _ddb = new DdbHelper(_db);
+      db = dynamo;
+      ddb = new DdbHelper(db);
     }
 
     public async Task<List<TransactionModel>> GetAsync(string userId)
     {
-      var q = new QueryRequest
+      var req = new QueryRequest
       {
-        TableName = _ddb.TrxTable,
+        TableName = ddb.TrxTable,
         KeyConditionExpression = "user_id = :uid",
         ExpressionAttributeValues = new Dictionary<string, AttributeValue>
         {
           [":uid"] = new AttributeValue { S = userId }
-        },
-        ScanIndexForward = false
+        }
       };
 
-      var res = await _db.QueryAsync(q, CancellationToken.None);
+      var res = await db.QueryAsync(req, CancellationToken.None);
+
       var list = new List<TransactionModel>();
 
-      foreach (var item in res.Items)
+      foreach (var it in res.Items)
       {
-        list.Add(new TransactionModel
+        var model = new TransactionModel
         {
-          UserId = item["user_id"].S,
-          TrxId = item["trx_id"].S,
-          FundId = item["fund_id"].S,
-          FundName = item.ContainsKey("fund_name") ? item["fund_name"].S : "",
-          Type = item["type"].S,
-          Amount = int.Parse(item["amount"].N),
-          CreatedAt = System.DateTime.Parse(item["created_at"].S)
-        });
-      }
+          UserId = DdbHelper.GetString(it, "user_id"),
+          TrxId = DdbHelper.GetString(it, "trx_id"),
+          FundId = DdbHelper.GetString(it, "fund_id"),
+          FundName = DdbHelper.GetString(it, "fund_name"),
+          Type = DdbHelper.GetString(it, "type"),
+          Amount = DdbHelper.GetInt(it, "amount", 0),
+          CreatedAtIso = DdbHelper.GetString(it, "created_at")
+        };
 
-      return list;
+        list.Add(model);
+      }
+      return list.OrderByDescending(x => x.CreatedAtIso).ToList();
     }
   }
 }

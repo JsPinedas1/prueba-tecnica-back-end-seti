@@ -8,8 +8,6 @@ using Amazon.Lambda.Core;
 using Btq.Funds.Api.Services;
 using Btq.Funds.Api.Utils;
 
-[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-
 namespace Btq.Funds.Api.Functions
 {
   public class HistoryFunction
@@ -28,7 +26,10 @@ namespace Btq.Funds.Api.Functions
     {
       try
       {
-        if (!request.PathParameters?.TryGetValue("user_id", out var userId) ?? true || string.IsNullOrWhiteSpace(userId))
+        var pathParams = request.PathParameters ?? new Dictionary<string, string>();
+        pathParams.TryGetValue("user_id", out var userId);
+
+        if (string.IsNullOrWhiteSpace(userId))
           return ResponseBuilder.BadRequest("user_id is required");
 
         var result = await _service.GetAsync(userId);
@@ -36,12 +37,7 @@ namespace Btq.Funds.Api.Functions
       }
       catch (Exception ex)
       {
-        return new APIGatewayProxyResponse
-        {
-          StatusCode = (int)HttpStatusCode.InternalServerError,
-          Body = JsonSerializer.Serialize(new { message = ex.Message }),
-          Headers = new Dictionary<string, string> { ["Content-Type"] = "application/json" }
-        };
+        return ResponseBuilder.Error(ex.Message);
       }
     }
   }

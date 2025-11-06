@@ -2,17 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
-using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.Model;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Btq.Funds.Api.Models.Requests;
 using Btq.Funds.Api.Services;
 using Btq.Funds.Api.Utils;
-
-[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
 namespace Btq.Funds.Api.Functions
 {
@@ -32,18 +27,19 @@ namespace Btq.Funds.Api.Functions
     {
       try
       {
+        if (string.IsNullOrWhiteSpace(request.Body))
+          return ResponseBuilder.BadRequest("invalid body");
+
         var payload = JsonSerializer.Deserialize<CancelRequest>(request.Body);
+        if (payload == null)
+          return ResponseBuilder.BadRequest("invalid body");
+
         var result = await _service.ProcessAsync(payload);
         return ResponseBuilder.Ok(result);
       }
       catch (Exception ex)
       {
-        return new APIGatewayProxyResponse
-        {
-          StatusCode = (int)HttpStatusCode.InternalServerError,
-          Body = JsonSerializer.Serialize(new { message = ex.Message }),
-          Headers = new Dictionary<string, string> { ["Content-Type"] = "application/json" }
-        };
+        return ResponseBuilder.Error(ex.Message);
       }
     }
   }
