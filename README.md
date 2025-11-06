@@ -1,11 +1,5 @@
 # prueba-tecnica-back-end-seti
 
-## Ejercicio 1 (Incluye documentación README.md propio)
-```
-Ejercicio1/
-```
+## [Ejercicio 1](./Ejercicio1/btg-funds/README.md)
 
-## Ejercicio 2 incluye sql
-```
-Ejercicio2/
-```
+## [Ejercicio 2](./Ejercicio2/query.sql)
